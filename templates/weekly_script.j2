@@ -1,0 +1,24 @@
+## 紙芝居パート：ウィークリーAIニュースまとめ
+
+### スライド1：オープニング
+**セリフ**: 「みんなー！ポンテだよ！今週のAIニュースをまとめてお届けするよ！」
+
+### スライド2：今週のハイライト
+**セリフ**: 「{{ weekly_intro }}」
+
+{% for topic in topics %}
+### スライド{{ loop.index * 3 }}：{{ topic.title }}
+**セリフ**: 「{{ topic.intro }}」
+
+### スライド{{ loop.index * 3 + 1 }}：{{ topic.title }}をくわしく
+**セリフ**: 「{{ topic.deep_dive }}」
+
+### スライド{{ loop.index * 3 + 2 }}：{{ topic.title }}のまとめ
+**セリフ**: 「{{ topic.takeaway }}」
+
+{% endfor %}
+### スライド{{ topics|length * 3 + 3 }}：今週のまとめ
+**セリフ**: 「{{ weekly_summary }}」
+
+### スライド{{ topics|length * 3 + 4 }}：エンディング
+**セリフ**: 「{{ ending }}」

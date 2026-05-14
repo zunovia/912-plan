@@ -1,0 +1,16 @@
+# Secret credentials
+.gemini_api_key
+.api_key
+client_secret*.json
+state/youtube_token.json
+
+# State / output
+state/
+output/
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db

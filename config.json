@@ -1,0 +1,79 @@
+{
+  "news": {
+    "rss_feeds": [
+      "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+      "https://feeds.technologyreview.com/technologyreview/ai/",
+      "https://venturebeat.com/category/ai/feed/",
+      "https://www.wired.com/feed/tag/ai/latest/rss"
+    ],
+    "google_cse": {
+      "api_key_env": "GOOGLE_CSE_API_KEY",
+      "engine_id_env": "GOOGLE_CSE_ENGINE_ID",
+      "queries": ["AI news today", "artificial intelligence breakthrough"]
+    },
+    "max_articles": 30,
+    "top_n": 5
+  },
+  "llm": {
+    "provider": "gemini",
+    "gemini": {
+      "api_key_file": ".gemini_api_key",
+      "model": "gemini-2.5-flash",
+      "max_tokens_scoring": 200,
+      "max_tokens_script": 1500
+    },
+    "claude": {
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "model": "claude-sonnet-4-20250514",
+      "max_tokens_scoring": 200,
+      "max_tokens_script": 1500
+    }
+  },
+  "tts": {
+    "provider": "voicevox",
+    "language": "ja-JP",
+    "voice": "",
+    "speaking_rate": 1.0,
+    "pitch": 0.0,
+    "options": {
+      "base_url": "http://localhost:50021",
+      "speaker": 14
+    }
+  },
+  "video": {
+    "resolution": [1920, 1080],
+    "shorts_resolution": [1080, 1920],
+    "fps": 30,
+    "silence_duration": 3.5,
+    "padding_before": 0.3,
+    "padding_after": 0.3,
+    "transition": "crossfade",
+    "transition_duration": 0.5
+  },
+  "bgm": {
+    "enabled": true,
+    "file": "assets/bgm/bgm_default.mp3",
+    "volume": 0.04
+  },
+  "youtube": {
+    "client_secrets_file": "client_secret.json",
+    "token_file": "state/youtube_token.json",
+    "default_category_id": "28",
+    "default_tags": ["AI", "人工知能", "AIニュース", "ポンテ", "AI教室", "小学生", "中学生"],
+    "initial_privacy": "private"
+  },
+  "paths": {
+    "video_engine_dir": "../911-plan",
+    "state_dir": "state",
+    "output_dir": "output",
+    "templates_dir": "templates",
+    "assets_dir": "assets"
+  },
+  "channel": {
+    "name": "ポンテのAI教室",
+    "character": "ポンテ",
+    "tagline": "むずかしいAIを、かんたんに。",
+    "target_audience": "小中学生＋保護者"
+  }
+}

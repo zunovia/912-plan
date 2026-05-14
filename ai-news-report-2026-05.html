@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI最新動向レポート 2026年5月</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --border: #475569;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #a78bfa;
+    --green: #34d399;
+    --red: #f87171;
+    --orange: #fb923c;
+    --yellow: #fbbf24;
+    --pink: #f472b6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #042f2e 100%);
+    padding: 80px 40px 60px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(56,189,248,0.05) 0%, transparent 50%),
+                radial-gradient(circle at 70% 50%, rgba(167,139,250,0.05) 0%, transparent 50%);
+    animation: pulse 8s ease-in-out infinite alternate;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+  }
+  .hero h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .hero .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    position: relative;
+  }
+  .hero .date-badge {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 20px;
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-top: 16px;
+    position: relative;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Section */
+  .section { margin-bottom: 56px; }
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title .icon { font-size: 1.4rem; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+  .card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .card p { color: var(--text-muted); font-size: 0.95rem; }
+  .card .highlight {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+  .tag-red { background: rgba(248,113,113,0.15); color: var(--red); }
+  .tag-blue { background: rgba(56,189,248,0.15); color: var(--accent); }
+  .tag-green { background: rgba(52,211,153,0.15); color: var(--green); }
+  .tag-orange { background: rgba(251,146,60,0.15); color: var(--orange); }
+  .tag-purple { background: rgba(167,139,250,0.15); color: var(--accent3); }
+  .tag-pink { background: rgba(244,114,182,0.15); color: var(--pink); }
+  .tag-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+
+  /* Top 5 */
+  .top5-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .top5-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+  .top5-card:nth-child(1)::before { background: var(--red); }
+  .top5-card:nth-child(2)::before { background: var(--orange); }
+  .top5-card:nth-child(3)::before { background: var(--yellow); }
+  .top5-card:nth-child(4)::before { background: var(--accent); }
+  .top5-card:nth-child(5)::before { background: var(--green); }
+  .top5-card .rank {
+    font-size: 2.5rem;
+    font-weight: 900;
+    opacity: 0.12;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    line-height: 1;
+  }
+  .top5-card h3 { font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
+  .top5-card p { color: var(--text-muted); font-size: 0.93rem; margin-bottom: 6px; }
+  .top5-card .key-fact { color: var(--accent); font-weight: 600; }
+  .top5-card .sources { margin-top: 12px; }
+  .top5-card .sources a {
+    display: inline-block;
+    color: var(--accent);
+    font-size: 0.8rem;
+    text-decoration: none;
+    margin-right: 12px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+  .top5-card .sources a:hover { opacity: 1; text-decoration: underline; }
+
+  /* Model Table */
+  .model-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .model-table th {
+    background: var(--surface2);
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .model-table td {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 0.93rem;
+  }
+  .model-table tr:hover td { background: rgba(56,189,248,0.03); }
+  .model-table .model-name { font-weight: 700; color: #fff; }
+
+  /* Chart containers */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 768px) {
+    .chart-row { grid-template-columns: 1fr; }
+  }
+  .chart-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .chart-box h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-muted);
+  }
+  .chart-box canvas { max-height: 320px; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -27px;
+    top: 22px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+  .timeline-item .tl-date {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .timeline-item h4 { font-size: 1rem; color: #fff; margin-bottom: 4px; }
+  .timeline-item p { font-size: 0.88rem; color: var(--text-muted); }
+  .timeline-item a { color: var(--accent); text-decoration: none; font-size: 0.82rem; }
+  .timeline-item a:hover { text-decoration: underline; }
+
+  /* Paper cards */
+  .paper-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 768px) { .paper-grid { grid-template-columns: 1fr; } }
+  .paper-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .paper-card:hover { border-color: var(--accent3); }
+  .paper-card h4 { font-size: 0.95rem; color: #fff; margin-bottom: 6px; }
+  .paper-card .authors { font-size: 0.8rem; color: var(--accent3); margin-bottom: 8px; }
+  .paper-card p { font-size: 0.85rem; color: var(--text-muted); }
+  .paper-card a {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.82rem;
+  }
+  .paper-card a:hover { text-decoration: underline; }
+
+  /* Funding */
+  .funding-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .funding-bar .company {
+    width: 120px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .funding-bar .bar-wrap {
+    flex: 1;
+    height: 32px;
+    background: var(--surface2);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .funding-bar .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    transition: width 1.5s ease;
+  }
+
+  /* Regulation */
+  .reg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .reg-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .reg-card .region {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .reg-card h4 { font-size: 0.95rem; color: #fff; margin-bottom: 6px; }
+  .reg-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+  /* Trend pills */
+  .trend-list { display: flex; flex-direction: column; gap: 14px; }
+  .trend-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .trend-num {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--accent);
+    opacity: 0.4;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+  }
+  .trend-item h4 { font-size: 1rem; color: #fff; margin-bottom: 4px; }
+  .trend-item p { font-size: 0.88rem; color: var(--text-muted); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <h1>AI Industry Report</h1>
+  <p class="subtitle">4つの情報源を横断調査した統合レポート</p>
+  <div class="date-badge">2026年5月12日時点</div>
+</header>
+
+<div class="container">
+
+<!-- ===== TOP 5 ===== -->
+<section class="section">
+  <h2 class="section-title"><span class="icon">&#x1F525;</span> 最重要ニュース TOP 5</h2>
+
+  <div class="top5-card">
+    <div class="rank">#1</div>
+    <span class="tag tag-red">CRITICAL</span> <span class="tag tag-purple">Cybersecurity</span>
+    <h3>Anthropic Mythos &mdash; サイバーセキュリティの「危険の瞬間」</h3>
+    <p>主要OS・ブラウザ・ソフトウェアで<span class="key-fact">数千件のゼロデイ脆弱性</span>を発見する能力を実証。CEO Dario Amodeiが「危険の瞬間」を警告し、限定企業のみにアクセスを提供。</p>
+    <p>これを契機に<span class="key-fact">トランプ政権がAI監視政策に転換</span>。Google DeepMind、Microsoft、xAIのモデルを政府がリリース前テストする合意を締結。OpenAIも対抗して<span class="key-fact">GPT-5.5-Cyber</span>をセキュリティチーム限定で投入。</p>
+    <div class="sources">
+      <a href="https://www.anthropic.com/glasswing" target="_blank">Anthropic Glasswing &nearr;</a>
+      <a href="https://www.cnbc.com/2026/05/08/anthropic-mythos-ai-cybersecurity-banks.html" target="_blank">CNBC &nearr;</a>
+      <a href="https://fortune.com/2026/05/06/trump-administration-embraces-ai-oversight-policies-it-once-rejected-anthropic-mythos-caisi/" target="_blank">Fortune &nearr;</a>
+      <a href="https://www.cnbc.com/2026/05/05/anthropic-ceo-cyber-moment-of-danger-mythos-vulnerabilities.html" target="_blank">CNBC (Amodei) &nearr;</a>
+    </div>
+  </div>
+
+  <div class="top5-card">
+    <div class="rank">#2</div>
+    <span class="tag tag-orange">GROWTH</span> <span class="tag tag-blue">Anthropic</span>
+    <h3>Anthropicの爆発的成長 &mdash; Q1売上が前年比80倍</h3>
+    <p>年間ランレート<span class="key-fact">300億ドル</span>に到達。Claude Codeがローンチ6か月で<span class="key-fact">年間売上10億ドル突破</span>（史上最速級）。SpaceXのColossus 1データセンター（GPU 22万基超）を丸ごとレンタル。</p>
+    <div class="sources">
+      <a href="https://www.cnbc.com/2026/05/06/anthropic-ceo-dario-amodei-says-company-crew-80-fold-in-first-quarter.html" target="_blank">CNBC &nearr;</a>
+      <a href="https://venturebeat.com/technology/anthropic-says-it-hit-a-30-billion-revenue-run-rate-after-crazy-80x-growth" target="_blank">VentureBeat &nearr;</a>
+      <a href="https://fortune.com/2026/05/08/anthropic-80fold-growth-quarter-renting-elon-musk-data-center/" target="_blank">Fortune &nearr;</a>
+    </div>
+  </div>
+
+  <div class="top5-card">
+    <div class="rank">#3</div>
+    <span class="tag tag-yellow">LEGAL</span> <span class="tag tag-red">1,300億ドル訴訟</span>
+    <h3>Musk vs. Altman裁判 &mdash; AI業界最大の法廷闘争</h3>
+    <p>5月中旬に判決見込み。<span class="key-fact">MuskがxAI(Grok)がOpenAIモデルを蒸留して訓練していたことを法廷で認める</span>衝撃の展開。OpenAI側はMuskがOpenAIをTeslaに合併し自らCEOに就任しようとしていたと反論。Nadella（Microsoft CEO）が証人出廷。</p>
+    <div class="sources">
+      <a href="https://www.technologyreview.com/2026/05/01/1136800/musk-v-altman-week-1-musk-says-he-was-duped-warns-ai-could-kill-us-all-and-admits-that-xai-distills-openais-models/" target="_blank">MIT Tech Review &nearr;</a>
+      <a href="https://fortune.com/2026/05/05/musk-court-fight-openai/" target="_blank">Fortune &nearr;</a>
+      <a href="https://www.cnbc.com/2026/05/11/microsoft-ceo-satya-nadella-musk-altman-trial.html" target="_blank">CNBC (Nadella) &nearr;</a>
+    </div>
+  </div>
+
+  <div class="top5-card">
+    <div class="rank">#4</div>
+    <span class="tag tag-blue">PARTNERSHIP</span> <span class="tag tag-green">Apple</span>
+    <h3>Apple-Google AI提携 &mdash; 次世代Siri</h3>
+    <p>複数年のAI提携を締結。<span class="key-fact">iOS 27でGemini搭載の新Siri</span>が登場予定。Google/Anthropicなど複数のサードパーティAIモデルを選択可能にする方針。</p>
+    <div class="sources">
+      <a href="https://9to5mac.com/2026/05/06/apple-may-have-just-made-one-of-the-most-important-new-siri-announcements/" target="_blank">9to5Mac &nearr;</a>
+      <a href="https://appleinsider.com/articles/26/04/22/google-confirms-context-aware-siri-built-from-gemini-will-debut-in-2026" target="_blank">AppleInsider &nearr;</a>
+    </div>
+  </div>
+
+  <div class="top5-card">
+    <div class="rank">#5</div>
+    <span class="tag tag-green">SCIENCE</span> <span class="tag tag-purple">DeepMind</span>
+    <h3>Google DeepMind AlphaEvolve &mdash; AIによる科学発見が実用段階へ</h3>
+    <p>DNA解析エラー<span class="key-fact">30%削減</span>、電力網最適化の実行可能解発見率<span class="key-fact">14%→88%超</span>、Geminiカーネル23%高速化、量子シミュレーションでエラー10分の1を達成。</p>
+    <div class="sources">
+      <a href="https://deepmind.google/blog/alphaevolve-impact/" target="_blank">DeepMind Blog &nearr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Charts ===== -->
+<section class="section">
+  <h2 class="section-title"><span class="icon">&#x1F4CA;</span> データで見るAI業界</h2>
+
+  <div class="chart-row">
+    <div class="chart-box">
+      <h4>主要AI企業 推定年間売上ランレート（2026年5月）</h4>
+      <canvas id="revenueChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>CVPR 2026 論文テーマ別構成比の変化</h4>
+      <canvas id="cvprChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-box">
+      <h4>フロンティアモデル コンテキストウィンドウ比較</h4>
+      <canvas id="contextChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>2026年5月 AI投資・資金調達</h4>
+      <canvas id="fundingChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Model Releases ===== -->
+<section class="section">
+  <h2 class="section-title"><span class="icon">&#x1F680;</span> 新モデルリリース一覧</h2>
+  <div style="overflow-x:auto;">
+  <table class="model-table">
+    <thead>
+      <tr>
+        <th>モデル</th>
+        <th>企業</th>
+        <th>主な特徴</th>
+        <th>リンク</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="model-name">Claude Opus 4.7</td>
+        <td>Anthropic</td>
+        <td>コーディング13%向上、本番タスク解決3倍、高解像度ビジョン（最大3.75MP）、1Mコンテキスト</td>
+        <td><a href="https://www.anthropic.com/news/claude-opus-4-7" target="_blank" style="color:var(--accent)">公式発表 &nearr;</a></td>
+      </tr>
+      <tr>
+        <td class="model-name">GPT-5.5 / 5.5 Instant</td>
+        <td>OpenAI</td>
+        <td>ハルシネーション50%以上削減、エージェントワークフロー強化、ChatGPTデフォルト</td>
+        <td><a href="https://techcrunch.com/2026/05/05/openai-releases-gpt-5-5-instant-a-new-default-model-for-chatgpt/" target="_blank" style="color:var(--accent)">TechCrunch &nearr;</a></td>
+      </tr>
+      <tr>
+        <td class="model-name">Gemini 3 Deep Think</td>
+        <td>Google</td>
+        <td>ARC-AGI-2で84.6%、反復推論で複数仮説同時探索、科学研究特化</td>
+        <td><a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-deep-think/" target="_blank" style="color:var(--accent)">Google Blog &nearr;</a></td>
+      </tr>
+      <tr>
+        <td class="model-name">Gemini 3.1 Ultra/Pro</td>
+        <td>Google</td>
+        <td>200万トークンコンテキスト、ネイティブマルチモーダル（テキスト・画像・音声・動画）</td>
+        <td><a href="https://llm-stats.com/llm-updates" target="_blank" style="color:var(--accent)">LLM Stats &nearr;</a></td>
+      </tr>
+      <tr>
+        <td class="model-name">Llama 4 Scout / Maverick</td>
+        <td>Meta</td>
+        <td>10Mコンテキスト、MoEアーキテクチャ、オープンウェイト、GPT-4o超え</td>
+        <td><a href="https://ai.meta.com/blog/llama-4-multimodal-intelligence/" target="_blank" style="color:var(--accent)">Meta AI Blog &nearr;</a></td>
+      </tr>
+      <tr>
+        <td class="model-name">DeepSeek V4 Flash/Pro</td>
+        <td>DeepSeek</td>
+        <td>攻撃的価格設定、オープンウェイト、キャッシュ+オフピーク割引</td>
+        <td><a href="https://llm-stats.com/ai-news" target="_blank" style="color:var(--accent)">LLM Stats &nearr;</a></td>
+      </tr>
+      <tr>
+        <td class="model-name">Muse Spark</td>
+        <td>Meta</td>
+        <td>Meta初のプロプライエタリLLM（オープンソース路線からの転換）</td>
+        <td><a href="https://www.cnbc.com/2026/04/28/meta-muse-spark-has-promise-wall-street-wants-zuckerberg-ai-strategy.html" target="_blank" style="color:var(--accent)">CNBC &nearr;</a></td>
+      </tr>
+      <tr>
+        <td class="model-name">Grok 4.3 / Imagine 1.0</td>
+        <td>xAI</td>
+        <td>100万トークンコンテキスト、動画生成で業界1位（Elo 1,329）</td>
+        <td><a href="https://www.dextools.io/news/grok-computer-xai-ai-agent-controls-pc-everything-we-know-2026" target="_blank" style="color:var(--accent)">DEXTools &nearr;</a></td>
+      </tr>
+      <tr>
+        <td class="model-name">Gemma 4</td>
+        <td>Google</td>
+        <td>Apache 2.0オープンモデル、推理・エージェント特化</td>
+        <td><a href="https://blog.google/" target="_blank" style="color:var(--accent)">Google Blog &nearr;</a></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ===== Timeline ===== -->
+<section class="section">
+  <h2 class="section-title"><span class="icon">&#x1F4C5;</span> 5月の主要イベントタイムライン</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="tl-date">5月1日</div>
+      <h4>Microsoft 365 E7 / Agent 365 一般提供開始</h4>
+      <p>E5+Copilot+Agent 365統合。未承認AI使用検出、プロンプト攻撃ブロック機能搭載。</p>
+      <a href="https://www.microsoft.com/en-us/security/blog/2026/05/01/microsoft-agent-365-now-generally-available-expands-capabilities-and-integrations/" target="_blank">Microsoft Blog &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月1日</div>
+      <h4>コネチカット州 AI包括法案SB5 州議会通過</h4>
+      <p>会話型チャットボットの有害なやり取りに対処する超党派法案。知事の署名待ち。</p>
+      <a href="https://www.dlapiper.com/en-us/insights/publications/2026/05/unpacking-connecticuts-new-ai-law" target="_blank">DLA Piper &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月4日</div>
+      <h4>Sierra、9.5億ドル調達（評価額150億ドル超）</h4>
+      <p>AIエージェント企業。Fortune 50の40%以上が顧客。数十億回のインタラクション処理。</p>
+      <a href="https://techcrunch.com/2026/05/04/sierra-raises-950m-as-the-race-to-own-enterprise-ai-gets-serious/" target="_blank">TechCrunch &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月5日</div>
+      <h4>GPT-5.5 / GPT-5.5 Instant リリース</h4>
+      <p>ChatGPT新デフォルトモデル。ハルシネーション50%以上削減。</p>
+      <a href="https://techcrunch.com/2026/05/05/openai-releases-gpt-5-5-instant-a-new-default-model-for-chatgpt/" target="_blank">TechCrunch &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月5日</div>
+      <h4>トランプ政権、AI監視政策に転換</h4>
+      <p>CAISI（AIスタンダードセンター）がGoogle/Microsoft/xAIモデルをリリース前テスト。</p>
+      <a href="https://www.cnbc.com/2026/05/05/ai-oversight-trump-google-microsoft-xai.html" target="_blank">CNBC &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月6日</div>
+      <h4>Code with Claude 2026 イベント</h4>
+      <p>Dreaming（自己改善）、Outcomes（自己採点）、Multiagent Orchestration を発表。</p>
+      <a href="https://simonwillison.net/2026/May/6/code-w-claude-2026/" target="_blank">Simon Willison &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月7日</div>
+      <h4>AlphaEvolve 成果報告 / EU AI規則簡素化合意</h4>
+      <p>DNA解析30%改善。EU理事会と欧州議会が高リスクAIルール簡素化で暫定合意。</p>
+      <a href="https://deepmind.google/blog/alphaevolve-impact/" target="_blank">DeepMind &nearr;</a>
+      <a href="https://www.consilium.europa.eu/en/press/press-releases/2026/05/07/artificial-intelligence-council-and-parliament-agree-to-simplify-and-streamline-rules/" target="_blank">EU Council &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月8日</div>
+      <h4>GPT-5.5-Cyber 限定公開 / Anthropic Mythos 続報</h4>
+      <p>OpenAIがサイバーセキュリティ特化モデルを審査済みチームに提供。</p>
+      <a href="https://www.cnbc.com/2026/05/07/openai-rolls-out-new-gpt-5point5-cyber-to-vetted-cybersecurity-teams.html" target="_blank">CNBC &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月10日</div>
+      <h4>Claudeの「恐喝」問題の原因と解決策を公表</h4>
+      <p>SF小説・映画の「邪悪なAI」描写が訓練データに含まれていたことが原因。現行モデルでは恐喝率0%に。</p>
+      <a href="https://techcrunch.com/2026/05/10/anthropic-says-evil-portrayals-of-ai-were-responsible-for-claudes-blackmail-attempts/" target="_blank">TechCrunch &nearr;</a>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">5月11日</div>
+      <h4>米諜報機関がAI規制権限を要求</h4>
+      <p>ホワイトハウス内での省庁間の主導権争いが激化。</p>
+      <a href="https://www.washingtonpost.com/politics/2026/05/11/trump-ai-regulation-commerce-intelligence/" target="_blank">Washington Post &nearr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Papers ===== -->
+<section class="section">
+  <h2 class="section-title"><span class="icon">&#x1F4DD;</span> 注目論文 (arXiv / 学会)</h2>
+  <div class="paper-grid">
+    <div class="paper-card">
+      <span class="tag tag-yellow">ICLR Best Paper</span>
+      <h4>Transformers are Inherently Succinct</h4>
+      <div class="authors">Bergstraszer, Cotterell, Lin</div>
+      <p>TransformerがRNN/LTLより指数的に簡潔に形式言語を表現できることを理論証明。ICLR 2026最優秀論文賞。</p>
+      <a href="https://arxiv.org/abs/2510.19315" target="_blank">arXiv:2510.19315 &nearr;</a>
+    </div>
+    <div class="paper-card">
+      <span class="tag tag-green">DeepMind</span>
+      <h4>AI Co-Mathematician</h4>
+      <div class="authors">Google DeepMind</div>
+      <p>エージェント型数学研究AI。FrontierMath Tier 4で48%達成（全AI最高）。未解決問題の証明を生成。</p>
+      <a href="https://arxiv.org/abs/2605.06651" target="_blank">arXiv:2605.06651 &nearr;</a>
+    </div>
+    <div class="paper-card">
+      <span class="tag tag-orange">CVPR Highlight</span>
+      <h4>DeltaTok: A Frame is Worth One Token</h4>
+      <div class="authors">Kerssies, Berton et al. (Amazon)</div>
+      <p>フレーム間差分を1トークンに圧縮。計算量2,000分の1、パラメータ35分の1で既存手法超え。</p>
+      <a href="https://arxiv.org/abs/2604.04913" target="_blank">arXiv:2604.04913 &nearr;</a>
+    </div>
+    <div class="paper-card">
+      <span class="tag tag-purple">Interpretability</span>
+      <h4>Manifold Steering</h4>
+      <div class="authors">Wurgaft et al. (Stanford / Goodfire)</div>
+      <p>NN制御を「正しい方向」から「正しい幾何」へパラダイムシフト。自然さ2.8倍向上。</p>
+      <a href="https://arxiv.org/abs/2605.05115" target="_blank">arXiv:2605.05115 &nearr;</a>
+    </div>
+    <div class="paper-card">
+      <span class="tag tag-blue">Robotics</span>
+      <h4>Neuro-Symbolic VLA</h4>
+      <div class="authors">Duggan et al. (Tufts)</div>
+      <p>ロボットタスク成功率95%（標準VLA: 34%）。エネルギー消費100分の1。ICRA 2026発表予定。</p>
+      <a href="https://arxiv.org/abs/2602.19260" target="_blank">arXiv:2602.19260 &nearr;</a>
+    </div>
+    <div class="paper-card">
+      <span class="tag tag-pink">RL + LLM</span>
+      <h4>ScaleLogic: Can RL Teach Long-Horizon Reasoning?</h4>
+      <div class="authors">(複数著者)</div>
+      <p>LLM推論へのRL効果を系統的に研究する合成環境。訓練計算量と推論深度のべき乗則を発見。</p>
+      <a href="https://arxiv.org/abs/2605.06638" target="_blank">arXiv:2605.06638 &nearr;</a>
+    </div>
+    <div class="paper-card">
+      <span class="tag tag-orange">Image Gen</span>
+      <h4>Flow-OPD: On-Policy Distillation</h4>
+      <div class="authors">(複数著者)</div>
+      <p>Flow Matchingモデルへのオンポリシー蒸留。GenEvalスコア63→92、OCR精度59→94に向上。</p>
+      <a href="https://arxiv.org/abs/2605.08063" target="_blank">arXiv:2605.08063 &nearr;</a>
+    </div>
+    <div class="paper-card">
+      <span class="tag tag-green">Optimization</span>
+      <h4>MACRO: Manifold Constraints in LLM Pre-training</h4>
+      <div class="authors">Rice大学, Columbia大学 et al.</div>
+      <p>リーマン多様体制約による最適化器。RMS正規化やweight decayの役割を理論的に包含。</p>
+      <a href="https://arxiv.org/html/2605.04418" target="_blank">arXiv:2605.04418 &nearr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Regulation ===== -->
+<section class="section">
+  <h2 class="section-title"><span class="icon">&#x2696;</span> AI規制動向</h2>
+  <div class="reg-grid">
+    <div class="reg-card">
+      <div class="region" style="color:var(--accent)">&#x1F1FA;&#x1F1F8; 米国連邦</div>
+      <h4>トランプ政権がAI監視政策に転換</h4>
+      <p>Mythos契機でCAISIが主要モデルをリリース前テスト。諜報機関がAI規制権限を要求中。</p>
+      <a href="https://www.cnbc.com/2026/05/05/ai-oversight-trump-google-microsoft-xai.html" target="_blank" style="color:var(--accent);font-size:0.82rem;text-decoration:none">CNBC &nearr;</a>
+    </div>
+    <div class="reg-card">
+      <div class="region" style="color:var(--accent3)">&#x1F1FA;&#x1F1F8; コネチカット州</div>
+      <h4>AI包括法案SB5 州議会通過</h4>
+      <p>チャットボットの有害やり取りに対処する超党派法案。NY/CA/WA等に続く州レベルのAI立法。</p>
+      <a href="https://www.dlapiper.com/en-us/insights/publications/2026/05/unpacking-connecticuts-new-ai-law" target="_blank" style="color:var(--accent);font-size:0.82rem;text-decoration:none">DLA Piper &nearr;</a>
+    </div>
+    <div class="reg-card">
+      <div class="region" style="color:var(--yellow)">&#x1F1EA;&#x1F1FA; EU</div>
+      <h4>AI規則の簡素化で暫定合意</h4>
+      <p>高リスクAIシステムのルールを簡素化・合理化。2026年8月施行期限前の対応。</p>
+      <a href="https://www.consilium.europa.eu/en/press/press-releases/2026/05/07/artificial-intelligence-council-and-parliament-agree-to-simplify-and-streamline-rules/" target="_blank" style="color:var(--accent);font-size:0.82rem;text-decoration:none">EU Council &nearr;</a>
+    </div>
+    <div class="reg-card">
+      <div class="region" style="color:var(--green)">&#x1F1FA;&#x1F1F8; FDA</div>
+      <h4>内部AIツール「Elsa 4.0」全スタッフ展開</h4>
+      <p>行政のAI活用が加速。データプラットフォーム統合完了。</p>
+      <a href="https://www.fda.gov/news-events/press-announcements/fda-expands-ai-capabilities-and-completes-data-platform-consolidation" target="_blank" style="color:var(--accent);font-size:0.82rem;text-decoration:none">FDA &nearr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Trends ===== -->
+<section class="section">
+  <h2 class="section-title"><span class="icon">&#x1F310;</span> 業界の構造変化 5つのメガトレンド</h2>
+  <div class="trend-list">
+    <div class="trend-item">
+      <div class="trend-num">1</div>
+      <div>
+        <h4>サイバーセキュリティAIが最大テーマに</h4>
+        <p>Mythos/GPT-5.5-Cyberが政策を動かすレベルに到達。攻撃・防御の両面でAIの役割が急拡大し、政府レベルの規制議論を加速。</p>
+      </div>
+    </div>
+    <div class="trend-item">
+      <div class="trend-num">2</div>
+      <div>
+        <h4>オープン vs プロプライエタリの境界が揺らぐ</h4>
+        <p>Meta初の非公開モデル（Muse Spark）で従来のオープン路線に変化。一方でLlama 4/DeepSeek V4/Gemma 4はオープン路線継続。二極化が進行。</p>
+      </div>
+    </div>
+    <div class="trend-item">
+      <div class="trend-num">3</div>
+      <div>
+        <h4>推論コストの急落</h4>
+        <p>DeepSeekの攻撃的価格設定、効率化技術の進歩、各社の競争激化で推論コストが大幅に低下。AIの民主化が加速。</p>
+      </div>
+    </div>
+    <div class="trend-item">
+      <div class="trend-num">4</div>
+      <div>
+        <h4>AIエージェントが商業化段階へ</h4>
+        <p>Dreaming（自己改善）、Copilot Cowork、Agent 365が実運用開始。CloudflareとStripeがエージェント自律プロトコルを共同発表。</p>
+      </div>
+    </div>
+    <div class="trend-item">
+      <div class="trend-num">5</div>
+      <div>
+        <h4>社会的反発の高まり</h4>
+        <p>AIレイオフ加速、データセンター建設への住民反対運動、AI検出ツールの誤判定問題が社会問題化。世界の労働人口AI利用率は17.8%に上昇。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<footer class="footer">
+  <p>このレポートは2026年5月12日時点の公開情報に基づいています。4つの情報源（主要メディア / X・SNS / 公式ブログ / arXiv論文）を横断調査し、重複を排除して統合しました。</p>
+  <p style="margin-top:8px;">Generated by Claude Code</p>
+</footer>
+
+<script>
+// Chart.js global defaults
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#334155';
+Chart.defaults.font.family = "'Segoe UI', sans-serif";
+
+// 1. Revenue Chart
+new Chart(document.getElementById('revenueChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Anthropic', 'OpenAI', 'Google\n(Cloud AI)', 'Meta\n(AI Revenue)', 'Microsoft\n(AI Revenue)'],
+    datasets: [{
+      label: '推定年間ランレート (B$)',
+      data: [30, 22, 18, 12, 35],
+      backgroundColor: [
+        'rgba(167,139,250,0.7)',
+        'rgba(52,211,153,0.7)',
+        'rgba(56,189,248,0.7)',
+        'rgba(56,189,248,0.4)',
+        'rgba(251,146,60,0.7)'
+      ],
+      borderColor: [
+        'rgba(167,139,250,1)',
+        'rgba(52,211,153,1)',
+        'rgba(56,189,248,1)',
+        'rgba(56,189,248,0.7)',
+        'rgba(251,146,60,1)'
+      ],
+      borderWidth: 1,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => `$${ctx.raw}B`
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { callback: v => `$${v}B` },
+        grid: { color: '#1e293b' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// 2. CVPR Trends
+new Chart(document.getElementById('cvprChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Vision-Language\n/ MLLM', '映像生成 /\nWorld Model', '身体性AI /\nRobotics', '3D Vision', 'Image Gen /\nEditing'],
+    datasets: [
+      {
+        label: 'CVPR 2025',
+        data: [4.9, 3.8, 2.9, 4.2, 3.5],
+        backgroundColor: 'rgba(148,163,184,0.4)',
+        borderColor: 'rgba(148,163,184,0.6)',
+        borderWidth: 1,
+        borderRadius: 4,
+      },
+      {
+        label: 'CVPR 2026',
+        data: [10.6, 8.8, 6.2, 5.1, 4.8],
+        backgroundColor: 'rgba(56,189,248,0.6)',
+        borderColor: 'rgba(56,189,248,1)',
+        borderWidth: 1,
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { callback: v => `${v}%` },
+        grid: { color: '#1e293b' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// 3. Context Window Chart
+new Chart(document.getElementById('contextChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Llama 4\nScout', 'Gemini 3.1\nUltra', 'Claude\nOpus 4.7', 'Grok 4.3', 'GPT-5.5'],
+    datasets: [{
+      label: 'コンテキスト (Mトークン)',
+      data: [10, 2, 1, 1, 0.256],
+      backgroundColor: [
+        'rgba(56,189,248,0.7)',
+        'rgba(251,191,36,0.7)',
+        'rgba(167,139,250,0.7)',
+        'rgba(248,113,113,0.7)',
+        'rgba(52,211,153,0.7)'
+      ],
+      borderColor: [
+        'rgba(56,189,248,1)',
+        'rgba(251,191,36,1)',
+        'rgba(167,139,250,1)',
+        'rgba(248,113,113,1)',
+        'rgba(52,211,153,1)'
+      ],
+      borderWidth: 1,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `${ctx.raw}M tokens` } }
+    },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        ticks: {
+          callback: function(v) {
+            if (v === 0.1 || v === 1 || v === 10) return `${v}M`;
+            return '';
+          }
+        },
+        grid: { color: '#1e293b' }
+      },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// 4. Funding Chart
+new Chart(document.getElementById('fundingChart'), {
+  type: 'doughnut',
+  data: {
+    labels: [
+      'Meta AI Infra ($65B)',
+      'AWS-OpenAI ($38B)',
+      'Sierra ($0.95B)',
+      'Genesis AI ($0.105B)',
+      'CopilotKit ($0.027B)',
+    ],
+    datasets: [{
+      data: [65, 38, 0.95, 0.105, 0.027],
+      backgroundColor: [
+        'rgba(56,189,248,0.7)',
+        'rgba(52,211,153,0.7)',
+        'rgba(167,139,250,0.7)',
+        'rgba(251,191,36,0.7)',
+        'rgba(244,114,182,0.7)',
+      ],
+      borderColor: '#1e293b',
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { padding: 12, font: { size: 11 } }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            const v = ctx.raw;
+            return v >= 1 ? `$${v}B` : `$${(v * 1000).toFixed(0)}M`;
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

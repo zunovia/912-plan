@@ -1,0 +1,24 @@
+## 紙芝居パート：デイリーAIニュース
+
+### スライド1：オープニング
+**セリフ**: 「みんなー！ポンテだよ！今日のAIニュース、いってみよう！」
+
+### スライド2：今日のニュース一覧
+**セリフ**: 「今日のAIニュースはこちら！{% for news in articles %}{{ loop.index }}つ目は{{ news.title_ja }}。{% endfor %}さっそく見ていこう！」
+
+{% for news in articles %}
+### スライド{{ loop.index * 2 + 1 }}：{{ news.title_ja }}
+**セリフ**: 「{{ news.intro }}」
+
+### スライド{{ loop.index * 2 + 2 }}：{{ news.title_ja }}のポイント
+**セリフ**: 「{{ news.explanation }}」
+
+{% endfor %}
+### スライド{{ articles|length * 2 + 3 }}：今日のキーワード
+**セリフ**: 「今日出(で)てきた大事(だいじ)な言葉(ことば)を確認(かくにん)しよう！{% for kw in keywords %}{{ kw.term }}は、{{ kw.desc }}{% if not loop.last %}次(つぎ)は、{% endif %}{% endfor %}しっかり覚(おぼ)えておこうね！」
+{% for kw in keywords %}
+- **{{ kw.term }}**: {{ kw.desc }}
+{% endfor %}
+
+### スライド{{ articles|length * 2 + 4 }}：エンディング
+**セリフ**: 「{{ ending }}」
