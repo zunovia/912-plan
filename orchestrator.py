@@ -45,18 +45,18 @@ def save_state(state_path: Path, state: dict) -> None:
 # Phase executors
 # ---------------------------------------------------------------------------
 
-def run_collect(date_str: str, config_path: Path, state: dict) -> dict:
+def run_collect(date_str: str, config_path: Path, state: dict, topic: str = "") -> dict:
     from news_collector import collect_news
-    news_path = collect_news(config_path, date_str)
+    news_path = collect_news(config_path, date_str, topic=topic)
     state["news_path"] = str(news_path)
     state["phases"]["collect"] = "done"
     return state
 
 
-def run_script(date_str: str, config_path: Path, state: dict, script_type: str) -> dict:
+def run_script(date_str: str, config_path: Path, state: dict, script_type: str, topic: str = "") -> dict:
     from script_generator import generate_script
     news_path = Path(state.get("news_path", f"state/news_{date_str}.json"))
-    script_path = generate_script(news_path, config_path, script_type)
+    script_path = generate_script(news_path, config_path, script_type, topic=topic)
     state["script_path"] = str(script_path)
     state["phases"]["script"] = "done"
     return state
@@ -79,9 +79,9 @@ def run_video(date_str: str, config_path: Path, state: dict) -> dict:
     return state
 
 
-def run_upload(date_str: str, config_path: Path, state: dict, script_type: str) -> dict:
+def run_upload(date_str: str, config_path: Path, state: dict, script_type: str, topic: str = "") -> dict:
     from youtube_uploader import upload
-    video_url = upload(date_str, config_path, script_type)
+    video_url = upload(date_str, config_path, script_type, topic=topic)
     state["video_url"] = video_url
     state["phases"]["upload"] = "done"
     return state
@@ -106,23 +106,23 @@ def run_video_shorts(date_str: str, config_path: Path, state: dict) -> dict:
     return state
 
 
-def run_upload_shorts(date_str: str, config_path: Path, state: dict, script_type: str) -> dict:
+def run_upload_shorts(date_str: str, config_path: Path, state: dict, script_type: str, topic: str = "") -> dict:
     from youtube_uploader import upload
-    video_url = upload(date_str, config_path, script_type, shorts=True)
+    video_url = upload(date_str, config_path, script_type, shorts=True, topic=topic)
     state["video_shorts_url"] = video_url
     state["phases"]["upload_shorts"] = "done"
     return state
 
 
 PHASE_RUNNERS = {
-    "collect": lambda d, c, s, t: run_collect(d, c, s),
-    "script": lambda d, c, s, t: run_script(d, c, s, t),
-    "slides": lambda d, c, s, t: run_slides(d, c, s),
-    "video": lambda d, c, s, t: run_video(d, c, s),
-    "upload": lambda d, c, s, t: run_upload(d, c, s, t),
-    "slides_shorts": lambda d, c, s, t: run_slides_shorts(d, c, s),
-    "video_shorts": lambda d, c, s, t: run_video_shorts(d, c, s),
-    "upload_shorts": lambda d, c, s, t: run_upload_shorts(d, c, s, t),
+    "collect": lambda d, c, s, t, tp: run_collect(d, c, s, topic=tp),
+    "script": lambda d, c, s, t, tp: run_script(d, c, s, t, topic=tp),
+    "slides": lambda d, c, s, t, tp: run_slides(d, c, s),
+    "video": lambda d, c, s, t, tp: run_video(d, c, s),
+    "upload": lambda d, c, s, t, tp: run_upload(d, c, s, t, topic=tp),
+    "slides_shorts": lambda d, c, s, t, tp: run_slides_shorts(d, c, s),
+    "video_shorts": lambda d, c, s, t, tp: run_video_shorts(d, c, s),
+    "upload_shorts": lambda d, c, s, t, tp: run_upload_shorts(d, c, s, t, topic=tp),
 }
 
 
@@ -138,6 +138,8 @@ def run_pipeline(
     skip_upload: bool = False,
     shorts: bool = False,
     force: bool = False,
+    topic: str = "",
+    from_phase: str = "",
 ) -> dict:
     """Run the full pipeline or a single step.
 
@@ -149,6 +151,8 @@ def run_pipeline(
         skip_upload: If True, skip the upload phase.
         shorts: If True, also generate and upload Shorts video.
         force: If True, reset all phases and re-run from scratch.
+        topic: Custom news topic (e.g. "車", "宇宙"). Empty = default AI news.
+        from_phase: If set, reset this phase and all subsequent phases, then run them.
 
     Returns:
         Final state dict.
@@ -173,11 +177,24 @@ def run_pipeline(
         state.pop("error", None)
         logger.info("Force mode: resetting all phases")
 
+    # From-phase mode: reset this phase and all subsequent phases
+    if from_phase and not force:
+        all_phase_order = ["collect", "script", "slides", "slides_shorts",
+                           "video", "video_shorts", "upload", "upload_shorts"]
+        if from_phase in all_phase_order:
+            idx = all_phase_order.index(from_phase)
+            for p in all_phase_order[idx:]:
+                state.get("phases", {}).pop(p, None)
+            state.pop("error", None)
+            logger.info("From-phase mode: resetting from '%s' onward", from_phase)
+
     # Initialize state
     if "phases" not in state:
         state["phases"] = {}
     state["date"] = date_str
     state["type"] = script_type
+    if topic:
+        state["topic"] = topic
     state["last_run"] = datetime.now(timezone.utc).isoformat()
 
     # Determine which phases to run
@@ -209,7 +226,7 @@ def run_pipeline(
         save_state(state_path, state)
 
         try:
-            state = PHASE_RUNNERS[phase](date_str, config_path, state, script_type)
+            state = PHASE_RUNNERS[phase](date_str, config_path, state, script_type, topic)
             save_state(state_path, state)
             logger.info("--- Phase %s completed ---", phase)
         except Exception as e:
@@ -278,6 +295,18 @@ def main() -> None:
         action="store_true",
         help="Reset all phases and re-run from scratch",
     )
+    parser.add_argument(
+        "--topic",
+        default="",
+        help="Custom news topic (e.g. '車', '宇宙'). Default: AI news",
+    )
+    parser.add_argument(
+        "--from",
+        dest="from_phase",
+        default="",
+        choices=["", "collect", "script", "slides", "video", "upload"],
+        help="Re-run from this phase onward (resets this and all subsequent phases)",
+    )
     args = parser.parse_args()
 
     state = run_pipeline(
@@ -288,6 +317,8 @@ def main() -> None:
         skip_upload=args.skip_upload,
         shorts=args.shorts,
         force=args.force,
+        topic=args.topic,
+        from_phase=args.from_phase,
     )
 
     print("\n=== Pipeline Result ===")

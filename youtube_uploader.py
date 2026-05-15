@@ -64,23 +64,25 @@ def generate_metadata(
     config: dict,
     script_type: str = "daily",
     news_data: dict | None = None,
+    topic: str = "",
 ) -> dict:
     """Generate video title, description, and tags."""
     channel = config.get("channel", {})
     yt_cfg = config.get("youtube", {})
+    topic_label = topic if topic else "AI"
 
     if script_type == "daily":
-        title = f"【AIニュース】{date_str[:4]}/{date_str[4:6]}/{date_str[6:]}のAIニュース｜{channel.get('name', 'ポンテのAI教室')}"
+        title = f"【{topic_label}ニュース】{date_str[:4]}/{date_str[4:6]}/{date_str[6:]}の{topic_label}ニュース｜{channel.get('name', 'ポンテのAI教室')} #AI #AIニュース #初心者 #ポンテのAIニュース"
         description = (
-            f"🤖 {channel.get('name', 'ポンテのAI教室')}のデイリーAIニュース！\n\n"
-            f"今日のAIニュースをポンテがわかりやすく紹介するよ！\n\n"
+            f"🤖 {channel.get('name', 'ポンテのAI教室')}のデイリー{topic_label}ニュース！\n\n"
+            f"今日の{topic_label}ニュースをポンテがわかりやすく紹介するよ！\n\n"
             f"📌 {channel.get('tagline', 'むずかしいAIを、かんたんに。')}\n\n"
         )
     else:
-        title = f"【週間AIまとめ】今週のAIニュースまとめ｜{channel.get('name', 'ポンテのAI教室')}"
+        title = f"【週間{topic_label}まとめ】今週の{topic_label}ニュースまとめ｜{channel.get('name', 'ポンテのAI教室')} #AI #AIニュース #初心者 #ポンテのAIニュース"
         description = (
             f"🤖 {channel.get('name', 'ポンテのAI教室')}のウィークリーまとめ！\n\n"
-            f"今週のAIニュースをポンテがまとめて紹介するよ！\n\n"
+            f"今週の{topic_label}ニュースをポンテがまとめて紹介するよ！\n\n"
             f"📌 {channel.get('tagline', 'むずかしいAIを、かんたんに。')}\n\n"
         )
 
@@ -97,9 +99,9 @@ def generate_metadata(
         description += "\n"
 
     if script_type == "daily":
-        description += "#AI #人工知能 #AIニュース #ポンテのAI教室\n\n"
+        description += f"#{topic_label} #{topic_label}ニュース #ポンテのAI教室\n\n"
     else:
-        description += "#AI #人工知能 #AIニュース #週間まとめ #ポンテのAI教室\n\n"
+        description += f"#{topic_label} #{topic_label}ニュース #週間まとめ #ポンテのAI教室\n\n"
 
     description += (
         "---\n"
@@ -108,13 +110,20 @@ def generate_metadata(
         "https://surc.online/"
     )
 
+    tags = yt_cfg.get("default_tags", ["AI", "AIニュース"])
+    if topic and topic != "AI":
+        tags = [topic, f"{topic}ニュース"] + tags
+
+    playlist = f"今日の{topic_label}ニュース（初心者向け）"
+
     return {
         "title": title[:100],
         "description": description,
-        "tags": yt_cfg.get("default_tags", ["AI", "AIニュース"]),
+        "tags": tags,
         "category_id": yt_cfg.get("default_category_id", "28"),
         "privacy": yt_cfg.get("initial_privacy", "private"),
-        "playlist": "今日のAIニュース（初心者向け）",
+        "playlist": playlist,
+        "date": date_str,
     }
 
 
@@ -122,15 +131,17 @@ def generate_shorts_metadata(
     date_str: str,
     config: dict,
     news_data: dict | None = None,
+    topic: str = "",
 ) -> dict:
     """Generate metadata for YouTube Shorts upload."""
     channel = config.get("channel", {})
     yt_cfg = config.get("youtube", {})
+    topic_label = topic if topic else "AI"
 
-    title = f"今日のAIニュース {date_str[4:6]}/{date_str[6:]}｜{channel.get('name', 'ポンテのAI教室')} #short #shorts #shortvideo #shortsvideo #shortfeed"
+    title = f"今日の{topic_label}ニュース {date_str[4:6]}/{date_str[6:]}｜{channel.get('name', 'ポンテのAI教室')} #AI #AIニュース #初心者 #ポンテのAIニュース #short #shorts #shortvideo #shortsvideo #shortfeed"
 
     description = (
-        f"🤖 {channel.get('name', 'ポンテのAI教室')}のデイリーAIニュース（ショート版）\n\n"
+        f"🤖 {channel.get('name', 'ポンテのAI教室')}のデイリー{topic_label}ニュース（ショート版）\n\n"
         f"📌 {channel.get('tagline', 'むずかしいAIを、かんたんに。')}\n\n"
     )
 
@@ -147,7 +158,7 @@ def generate_shorts_metadata(
 
     description += (
         "▶ フル版はチャンネルでチェック！\n\n"
-        "#AI #AIニュース #Shorts #ポンテのAI教室\n\n"
+        f"#{topic_label} #{topic_label}ニュース #Shorts #ポンテのAI教室\n\n"
         "---\n"
         "🔔 チャンネル登録よろしくね！\n\n"
         "運営：\n"
@@ -155,6 +166,10 @@ def generate_shorts_metadata(
     )
 
     shorts_tags = yt_cfg.get("default_tags", ["AI", "AIニュース"]) + ["Shorts"]
+    if topic and topic != "AI":
+        shorts_tags = [topic, f"{topic}ニュース"] + shorts_tags
+
+    playlist = f"今日の{topic_label}ニュース（初心者向け）"
 
     return {
         "title": title[:100],
@@ -162,7 +177,8 @@ def generate_shorts_metadata(
         "tags": shorts_tags,
         "category_id": yt_cfg.get("default_category_id", "28"),
         "privacy": yt_cfg.get("initial_privacy", "private"),
-        "playlist": "今日のAIニュース（初心者向け）",
+        "playlist": playlist,
+        "date": date_str,
     }
 
 
@@ -182,15 +198,28 @@ def upload_video(
         yt_cfg["token_file"],
     )
 
+    # recording date from metadata (YYYYMMDD → YYYY-MM-DD)
+    date_str = metadata.get("date", "")
+    recording_date = ""
+    if len(date_str) == 8:
+        recording_date = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}T00:00:00Z"
+
     body = {
         "snippet": {
             "title": metadata["title"],
             "description": metadata["description"],
             "tags": metadata["tags"],
             "categoryId": metadata["category_id"],
+            "defaultLanguage": metadata.get("language", "ja"),
+            "defaultAudioLanguage": metadata.get("language", "ja"),
         },
         "status": {
             "privacyStatus": metadata.get("privacy", "private"),
+            "selfDeclaredMadeForKids": False,
+            "containsSyntheticMedia": False,
+        },
+        "recordingDetails": {
+            "recordingDate": recording_date,
         },
     }
 
@@ -202,7 +231,7 @@ def upload_video(
     )
 
     request = service.videos().insert(
-        part="snippet,status",
+        part="snippet,status,recordingDetails",
         body=body,
         media_body=media,
     )
@@ -274,6 +303,7 @@ def upload(
     config_path: Path = Path("config.json"),
     script_type: str = "daily",
     shorts: bool = False,
+    topic: str = "",
 ) -> str:
     """Full upload flow. Returns video URL."""
     config = load_config(config_path)
@@ -296,9 +326,9 @@ def upload(
             news_data = json.load(f)
 
     if shorts:
-        metadata = generate_shorts_metadata(date_str, config, news_data=news_data)
+        metadata = generate_shorts_metadata(date_str, config, news_data=news_data, topic=topic)
     else:
-        metadata = generate_metadata(date_str, config, script_type, news_data=news_data)
+        metadata = generate_metadata(date_str, config, script_type, news_data=news_data, topic=topic)
     return upload_video(video_path, metadata, config_path)
 
 

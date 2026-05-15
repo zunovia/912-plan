@@ -95,8 +95,14 @@ def _slides_to_entries(slides: list[dict], gv_module) -> list:
             # 括弧内の演出指示を除去（例: 「（3秒の間の後）あなたの...」）
             # 911-planのparse_script()と同じ処理を適用する
             text = re.sub(r"（[^）]*）", "", serif).strip()
-            # ルビ記法を除去: '人工知能(じんこうちのう)' → '人工知能'
-            # TTS（VOICEVOX）にはルビなしのプレーンテキストを渡す
+            # 英語(カタカナ) → カタカナに置換（VOICEVOXがカタカナを読む）
+            # 例: OpenAI(オープンエーアイ) → オープンエーアイ
+            text = re.sub(
+                r"([A-Za-z0-9][\w\s\-\.]*[A-Za-z0-9]|[A-Za-z0-9])\(([ァ-ヶー]+)\)",
+                r"\2", text,
+            )
+            # 漢字のルビ記法を除去: '人工知能(じんこうちのう)' → '人工知能'
+            # TTS（VOICEVOX）は漢字を自力で読めるのでルビ不要
             text = re.sub(r"\([ぁ-ん]+\)", "", text)
             entries.append(
                 gv_module.SlideEntry(

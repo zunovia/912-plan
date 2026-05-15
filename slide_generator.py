@@ -24,8 +24,14 @@ EXPRESSIONS = ["normal", "surprised", "thinking", "clumsy"]
 _WEEKDAYS_JA = ["月", "火", "水", "木", "金", "土", "日"]
 _WEEKDAY_CLASSES = ["day-mon", "day-tue", "day-wed", "day-thu", "day-fri", "day-sat", "day-sun"]
 
-# ルビ記法: 漢字(ふりがな) → <ruby>漢字<rt>ふりがな</rt></ruby>
-_RUBY_RE = re.compile(r"([\u4e00-\u9fff\u3400-\u4dbf]+)\(([ぁ-ん]+)\)")
+# ルビ記法:
+#   漢字(ふりがな) → <ruby>漢字<rt>ふりがな</rt></ruby>
+#   English(カタカナ) → <ruby>English<rt>カタカナ</rt></ruby>
+_RUBY_RE = re.compile(
+    r"([\u4e00-\u9fff\u3400-\u4dbf々]+)\(([ぁ-ん]+)\)"
+    r"|"
+    r"([A-Za-z0-9][\w\s\-\.]*[A-Za-z0-9]|[A-Za-z0-9])\(([ァ-ヶー]+)\)"
+)
 
 # キーワード箇条書き: - **term**: desc
 _KEYWORD_ITEM_RE = re.compile(r"^-\s+\*\*(.+?)\*\*:\s*(.+)$", re.MULTILINE)
@@ -59,8 +65,18 @@ def is_friday(date_str: str) -> bool:
 
 
 def apply_ruby(text: str) -> str:
-    """Convert ruby notation '漢字(ふりがな)' to HTML <ruby> tags."""
-    return _RUBY_RE.sub(r"<ruby>\1<rt>\2</rt></ruby>", text)
+    """Convert ruby notation to HTML <ruby> tags.
+
+    Supports:
+      漢字(ふりがな) → <ruby>漢字<rt>ふりがな</rt></ruby>
+      English(カタカナ) → <ruby>English<rt>カタカナ</rt></ruby>
+    """
+    def _replace(m):
+        if m.group(1):  # kanji + hiragana
+            return f"<ruby>{m.group(1)}<rt>{m.group(2)}</rt></ruby>"
+        else:  # English + katakana
+            return f"<ruby>{m.group(3)}<rt>{m.group(4)}</rt></ruby>"
+    return _RUBY_RE.sub(_replace, text)
 
 
 def _parse_keyword_items(body: str) -> list[dict]:
@@ -320,9 +336,10 @@ async def generate_slides_async(
                     mime = {"jpg": "jpeg", "jpeg": "jpeg", "png": "png", "webp": "webp"}.get(suffix, "jpeg")
                     og_images[idx] = f"data:image/{mime};base64,{img_data}"
 
-    # インデックススライド用: ニュースタイトル一覧を事前抽出
+    # インデックススライド用: ニュースタイトル一覧を事前抽出（ルビ付き）
+    from script_generator import add_ruby_to_text
     news_titles = [
-        s["title"] for s in slides
+        apply_ruby(add_ruby_to_text(s["title"])) for s in slides
         if not s["is_opening"] and not s["is_ending"] and not s["is_index"]
         and not s.get("is_keyword")
         and "のポイント" not in s["title"]

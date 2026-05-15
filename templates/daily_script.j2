@@ -1,10 +1,10 @@
-## 紙芝居パート：デイリーAIニュース
+## 紙芝居パート：デイリー{{ topic | default("AI") }}ニュース
 
 ### スライド1：オープニング
-**セリフ**: 「みんなー！ポンテだよ！今日のAIニュース、いってみよう！」
+**セリフ**: 「みんなー！ポンテだよ！今日の{{ topic | default("AI") }}ニュース、いってみよう！」
 
 ### スライド2：今日のニュース一覧
-**セリフ**: 「今日のAIニュースはこちら！{% for news in articles %}{{ loop.index }}つ目は{{ news.title_ja }}。{% endfor %}さっそく見ていこう！」
+**セリフ**: 「今日の{{ topic | default("AI") }}ニュースはこちら！{% for news in articles %}{{ loop.index }}つ目は{{ news.title_ja }}。{% endfor %}さっそく見ていこう！」
 
 {% for news in articles %}
 ### スライド{{ loop.index * 2 + 1 }}：{{ news.title_ja }}

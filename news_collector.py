@@ -245,8 +245,8 @@ def filter_by_freshness(
 # LLM-based scoring
 # ---------------------------------------------------------------------------
 
-SCORING_SYSTEM_PROMPT = """\
-あなたはAIニュースの評価者です。小中学生向けYouTubeチャンネル「ポンテのAI教室」のために、
+SCORING_SYSTEM_PROMPT_TEMPLATE = """\
+あなたは{topic}ニュースの評価者です。小中学生向けYouTubeチャンネル「ポンテのAI教室」のために、
 ニュース記事を以下の基準で1-10のスコアで評価してください。
 
 評価基準:
@@ -258,13 +258,14 @@ SCORING_SYSTEM_PROMPT = """\
 日本語のタイトルと50文字以内の要約も生成してください。
 
 JSON形式のみで回答（説明文不要）:
-{"score": 数値, "title_ja": "日本語タイトル", "summary_ja": "50文字以内の要約"}
+{{"score": 数値, "title_ja": "日本語タイトル", "summary_ja": "50文字以内の要約"}}
 """
 
 
 def score_articles_with_llm(
     articles: list[dict],
     llm_config: dict,
+    topic: str = "AI",
 ) -> list[dict]:
     """Score and summarize articles using LLM API."""
     from api_utils import LLMClient
@@ -273,6 +274,7 @@ def score_articles_with_llm(
     client = LLMClient(llm_config)
     scored = []
     max_tokens = llm_config.get(llm_config.get("provider", "gemini"), {}).get("max_tokens_scoring", 200)
+    scoring_prompt = SCORING_SYSTEM_PROMPT_TEMPLATE.format(topic=topic)
 
     for idx, article in enumerate(articles):
         if idx > 0:
@@ -284,7 +286,7 @@ def score_articles_with_llm(
                 f"ソース: {article['source']}\n"
                 f"概要: {article['summary']}"
             )
-            text = client.generate(SCORING_SYSTEM_PROMPT, user_prompt, max_tokens)
+            text = client.generate(scoring_prompt, user_prompt, max_tokens)
             text = text.strip()
 
             if "{" in text:
@@ -344,8 +346,13 @@ def score_articles_fallback(articles: list[dict]) -> list[dict]:
 def collect_news(
     config_path: Path = Path("config.json"),
     date_str: str | None = None,
+    topic: str = "",
 ) -> Path:
-    """Run the full news collection pipeline. Returns path to output JSON."""
+    """Run the full news collection pipeline. Returns path to output JSON.
+
+    Args:
+        topic: Custom topic keyword (e.g. "車", "宇宙"). If empty, uses default AI news.
+    """
     config = load_config(config_path)
     news_cfg = config["news"]
     llm_cfg = config.get("llm", {})
@@ -355,22 +362,39 @@ def collect_news(
     if date_str is None:
         date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
 
-    # 1. Collect from RSS
-    articles = collect_from_rss(news_cfg["rss_feeds"])
+    articles = []
 
-    # 2. Collect from Google CSE (if configured)
-    cse_cfg = news_cfg.get("google_cse", {})
-    cse_api_key = os.environ.get(cse_cfg.get("api_key_env", ""), "")
-    cse_engine_id = os.environ.get(cse_cfg.get("engine_id_env", ""), "")
-    if cse_api_key and cse_engine_id:
-        cse_articles = collect_from_google_cse(
-            cse_cfg.get("queries", []),
-            cse_api_key,
-            cse_engine_id,
-        )
-        articles.extend(cse_articles)
+    if topic:
+        # Custom topic mode: skip RSS, use Google CSE with topic queries only
+        logger.info("Custom topic mode: '%s'", topic)
+        cse_cfg = news_cfg.get("google_cse", {})
+        cse_api_key = os.environ.get(cse_cfg.get("api_key_env", ""), "")
+        cse_engine_id = os.environ.get(cse_cfg.get("engine_id_env", ""), "")
+        if cse_api_key and cse_engine_id:
+            topic_queries = [
+                f"{topic} ニュース 今日",
+                f"{topic} 最新ニュース",
+                f"{topic} news today",
+            ]
+            articles = collect_from_google_cse(topic_queries, cse_api_key, cse_engine_id)
+        else:
+            logger.warning("Google CSE not configured. Cannot collect custom topic news.")
     else:
-        logger.info("Google CSE not configured, skipping")
+        # Default AI news mode: RSS + Google CSE
+        articles = collect_from_rss(news_cfg["rss_feeds"])
+
+        cse_cfg = news_cfg.get("google_cse", {})
+        cse_api_key = os.environ.get(cse_cfg.get("api_key_env", ""), "")
+        cse_engine_id = os.environ.get(cse_cfg.get("engine_id_env", ""), "")
+        if cse_api_key and cse_engine_id:
+            cse_articles = collect_from_google_cse(
+                cse_cfg.get("queries", []),
+                cse_api_key,
+                cse_engine_id,
+            )
+            articles.extend(cse_articles)
+        else:
+            logger.info("Google CSE not configured, skipping")
 
     # 3. Deduplicate
     articles = deduplicate(articles)
@@ -385,8 +409,9 @@ def collect_news(
     articles = articles[:max_articles]
 
     # 5. Score articles with LLM (fallback to keywords on failure)
+    topic_label = topic if topic else "AI"
     try:
-        scored = score_articles_with_llm(articles, llm_cfg)
+        scored = score_articles_with_llm(articles, llm_cfg, topic=topic_label)
     except Exception as e:
         logger.warning("LLM scoring failed, using keyword fallback: %s", e)
         scored = score_articles_fallback(articles)
@@ -402,6 +427,7 @@ def collect_news(
     # 8. Save
     output = {
         "date": date_str,
+        "topic": topic if topic else "AI",
         "collected_at": datetime.now(timezone.utc).isoformat(),
         "total_collected": len(scored),
         "selected_count": len(selected),

@@ -109,9 +109,9 @@ def load_news(news_path: Path) -> dict:
 # LLM-based script generation
 # ---------------------------------------------------------------------------
 
-SCRIPT_SYSTEM_PROMPT = """\
+SCRIPT_SYSTEM_PROMPT_TEMPLATE = """\
 あなたは「ポンテ」というかわいいAIロボットキャラクターです。
-小中学生向けYouTubeチャンネル「ポンテのAI教室」でAIニュースを紹介します。
+小中学生向けYouTubeチャンネル「ポンテのAI教室」で{topic}ニュースを紹介します。
 
 ポンテの口調ルール:
 - やさしくてわかりやすい言葉を使う
@@ -129,16 +129,21 @@ SCRIPT_SYSTEM_PROMPT = """\
 JSON形式のみで回答（説明文不要）。
 """
 
+# Backward compatibility
+SCRIPT_SYSTEM_PROMPT = SCRIPT_SYSTEM_PROMPT_TEMPLATE.format(topic="AI")
+
 
 def generate_article_scripts(
     articles: list[dict],
     llm_config: dict,
+    topic: str = "AI",
 ) -> dict:
     """Generate intro and explanation scripts for each article."""
     from api_utils import LLMClient
 
     client = LLMClient(llm_config)
     max_tokens = llm_config.get(llm_config.get("provider", "gemini"), {}).get("max_tokens_script", 1500)
+    system_prompt = SCRIPT_SYSTEM_PROMPT_TEMPLATE.format(topic=topic)
 
     prompt_parts = []
     for i, article in enumerate(articles, 1):
@@ -167,7 +172,7 @@ def generate_article_scripts(
         '}'
     )
 
-    text = client.generate(SCRIPT_SYSTEM_PROMPT, user_prompt, max_tokens)
+    text = client.generate(system_prompt, user_prompt, max_tokens)
     text = text.strip()
 
     if "{" in text:
@@ -269,6 +274,7 @@ def render_script(
     template_path: Path,
     date_str: str,
     keywords: list[dict] | None = None,
+    **kwargs,
 ) -> str:
     """Render the final script using Jinja2 template."""
     env = jinja2.Environment(
@@ -309,6 +315,7 @@ def render_script(
         ending=ending,
         date=date_str,
         keywords=keywords or script_data.get("keywords", []),
+        topic=kwargs.get("topic", "AI"),
     )
 
 
@@ -320,6 +327,7 @@ def generate_script(
     news_path: Path,
     config_path: Path = Path("config.json"),
     script_type: str = "daily",
+    topic: str = "",
 ) -> Path:
     """Generate a script from news data. Returns path to output markdown."""
     config = load_config(config_path)
@@ -329,10 +337,11 @@ def generate_script(
 
     news_data = load_news(news_path)
     date_str = news_data.get("date", datetime.now(timezone.utc).strftime("%Y%m%d"))
+    topic_label = topic if topic else news_data.get("topic", "AI")
 
     # Generate scripts via LLM (with fallback)
     try:
-        script_data = generate_article_scripts(news_data["articles"], llm_cfg)
+        script_data = generate_article_scripts(news_data["articles"], llm_cfg, topic=topic_label)
     except Exception as e:
         logger.warning("LLM script generation failed, using fallback: %s", e)
         script_data = generate_article_scripts_fallback(news_data["articles"])
@@ -343,7 +352,7 @@ def generate_script(
     if not template_path.exists():
         raise FileNotFoundError(f"Template not found: {template_path}")
 
-    script_md = render_script(news_data, script_data, template_path, date_str)
+    script_md = render_script(news_data, script_data, template_path, date_str, topic=topic_label)
 
     # Apply ruby post-processing: auto-annotate kanji missing furigana
     lines = script_md.split("\n")
