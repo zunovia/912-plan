@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 _kks = pykakasi.kakasi()
 
 # Existing ruby pattern: 漢字(ふりがな)
-_EXISTING_RUBY_RE = re.compile(r"([\u4e00-\u9fff\u3400-\u4dbf々]+)\([ぁ-ん]+\)")
+_EXISTING_RUBY_RE = re.compile(r"([\u4e00-\u9fff\u3400-\u4dbf々]+)\([ぁ-んァ-ヶー]+\)")
 
 # Kanji range + 々 (repetition mark)
 _KANJI_RE = re.compile(r"[\u4e00-\u9fff\u3400-\u4dbf々]+")

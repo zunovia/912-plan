@@ -28,7 +28,7 @@ _WEEKDAY_CLASSES = ["day-mon", "day-tue", "day-wed", "day-thu", "day-fri", "day-
 #   漢字(ふりがな) → <ruby>漢字<rt>ふりがな</rt></ruby>
 #   English(カタカナ) → <ruby>English<rt>カタカナ</rt></ruby>
 _RUBY_RE = re.compile(
-    r"([\u4e00-\u9fff\u3400-\u4dbf々]+)\(([ぁ-ん]+)\)"
+    r"([\u4e00-\u9fff\u3400-\u4dbf々]+)\(([ぁ-んァ-ヶー]+)\)"
     r"|"
     r"([A-Za-z0-9][\w\s\-\.]*[A-Za-z0-9]|[A-Za-z0-9])\(([ァ-ヶー]+)\)"
 )
@@ -77,6 +77,32 @@ def apply_ruby(text: str) -> str:
         else:  # English + katakana
             return f"<ruby>{m.group(3)}<rt>{m.group(4)}</rt></ruby>"
     return _RUBY_RE.sub(_replace, text)
+
+
+_RUBY_EXTRACT_RE = re.compile(
+    r"([\u4e00-\u9fff\u3400-\u4dbf々]+)\(([ぁ-んァ-ヶー]+)\)"
+    r"|"
+    r"([A-Za-z0-9][\w\s\-\.]*[A-Za-z0-9]|[A-Za-z0-9])\(([ァ-ヶー]+)\)"
+)
+
+
+def _extract_ruby_dict(text: str) -> dict[str, str]:
+    """セリフからルビ記法を抽出して {漢字: ふりがな, English: カタカナ} 辞書を返す."""
+    ruby_dict: dict[str, str] = {}
+    for m in _RUBY_EXTRACT_RE.finditer(text):
+        if m.group(1):  # 漢字(ふりがな or カタカナ)
+            ruby_dict[m.group(1)] = m.group(2)
+        elif m.group(3):  # English(カタカナ)
+            ruby_dict[m.group(3)] = m.group(4)
+    return ruby_dict
+
+
+def _apply_ruby_dict(text: str, ruby_dict: dict[str, str]) -> str:
+    """タイトルテキストにルビ辞書を適用する。長いキーから順に置換."""
+    for word in sorted(ruby_dict, key=len, reverse=True):
+        if word in text:
+            text = text.replace(word, f"{word}({ruby_dict[word]})")
+    return text
 
 
 def _parse_keyword_items(body: str) -> list[dict]:
@@ -216,10 +242,12 @@ def render_slide_html(
 
     date_str = config.get("_date_display", config.get("_date", ""))
 
-    # Add furigana to title via pykakasi, then convert ruby notation to HTML
+    # セリフ中のルビ記法を辞書化 → タイトルの漢字に適用（手修正を優先）
     from script_generator import add_ruby_to_text
-    title_html = apply_ruby(add_ruby_to_text(slide["title"]))
     serif_text = slide["serif"][:300] if slide["serif"] else ""
+    ruby_dict = _extract_ruby_dict(serif_text)
+    title_with_ruby = _apply_ruby_dict(slide["title"], ruby_dict)
+    title_html = apply_ruby(add_ruby_to_text(title_with_ruby))
     text_html = apply_ruby(serif_text)
 
     # Apply ruby to keyword items
@@ -336,14 +364,16 @@ async def generate_slides_async(
                     mime = {"jpg": "jpeg", "jpeg": "jpeg", "png": "png", "webp": "webp"}.get(suffix, "jpeg")
                     og_images[idx] = f"data:image/{mime};base64,{img_data}"
 
-    # インデックススライド用: ニュースタイトル一覧を事前抽出（ルビ付き）
+    # インデックススライド用: ニュースタイトル一覧を事前抽出（セリフのルビを優先）
     from script_generator import add_ruby_to_text
-    news_titles = [
-        apply_ruby(add_ruby_to_text(s["title"])) for s in slides
-        if not s["is_opening"] and not s["is_ending"] and not s["is_index"]
-        and not s.get("is_keyword")
-        and "のポイント" not in s["title"]
-    ]
+    news_titles = []
+    for s in slides:
+        if (not s["is_opening"] and not s["is_ending"] and not s["is_index"]
+                and not s.get("is_keyword")
+                and "のポイント" not in s["title"]):
+            rd = _extract_ruby_dict(s["serif"])
+            t = _apply_ruby_dict(s["title"], rd)
+            news_titles.append(apply_ruby(add_ruby_to_text(t)))
 
     news_counter = 0
     # Track which article number we're on (each article = 2 slides: intro + point)
